@@ -1,40 +1,72 @@
-# INCEPT / CBraDINO
+# Taming Foundation Model with Invariance-Oriented Pre-Training for Broad-Spectrum EEG Analysis Across Signal-Level, Brain-State, and Brain-Health Tasks
 
-This repository contains the EEG preprocessing, self-supervised pretraining, and downstream evaluation code used by the project.
+Yulong Dou, Han Wu, Guo Chen, Fangmao Ju, Zhiming Cui, and Dinggang Shen
 
-## Repository layout
+This is the official implementation of **INCEPT**, an invariance-oriented EEG foundation model for transferable analysis across signal-level, brain-state, and brain-health tasks. The manuscript is currently under review.
 
-```text
-.
-├── Code_Preprocess/             # Dataset-specific preprocessing scripts
-├── Code_Training/
-│   ├── configs/train/           # 200-epoch pretraining configuration
-│   ├── evaluations/             # Fine-tuning and linear-probing scripts
-│   ├── experiments/             # Runtime outputs (initially empty)
-│   └── train/                   # Pretraining entry point
-└── Data_Reference/              # Small example of the expected data layout
-    └── TUEG/
+## Environment Setup
+
+The code was tested with Python 3.9, PyTorch 2.0.0, and CUDA 11.7. Create a clean Conda environment and install only the packages required by this repository:
+
+```bash
+git clone https://github.com/douyl/INCEPT.git
+cd INCEPT
+
+conda create -n incept python=3.9 -y
+conda activate incept
+
+pip install torch==2.0.0 --index-url https://download.pytorch.org/whl/cu117
+pip install -r requirements.txt
 ```
 
-The released training framework is based on `CBraDINO_Base-Aug-Dynamic-TimeFreq-SH-ChAttn`. Generated experiment artifacts and checkpoints are intentionally not included.
-
-## Setup
-
-Create a Python environment with PyTorch/CUDA and the dependencies imported by the scripts (including MNE, NumPy, SciPy, scikit-learn, pandas, PyYAML, tqdm, and tensorboard). Run all commands below from the repository root unless stated otherwise.
-
-Define paths for convenience:
+All commands below assume that they are run from the repository root unless stated otherwise. Define the dataset root once for convenience:
 
 ```bash
 export REPO_ROOT="$(pwd)"
 export DATA_ROOT=/path/to/EEG_Dataset
-export EVAL_DIR=/path/to/pretrained_checkpoint
 ```
 
-For downstream evaluation, `EVAL_DIR` must contain both `config.yaml` and `teacher_checkpoint.pth` from a pretrained run.
+## 1. Data Preprocessing
 
-## Reference data structure
+The scripts in `Code_Preprocess` convert raw EEG recordings into standardized 250 Hz recordings and model-ready NumPy segments. The repository supports TUEG for self-supervised pre-training and ten downstream datasets for evaluation.
 
-`Data_Reference/TUEG` contains one subject/recording example showing the expected data layout before and after preprocessing:
+| Dataset | Preprocessing Code |
+|---|---|
+| TUEG | `[TUEG]-1-Preprocess.py`, `[TUEG]-2-Segment.py` |
+| ADFTD | `[ADFTD].py` |
+| FACED | `[FACED].py` |
+| ISRUC-S1 | `[ISRUC].py` |
+| MentalArithmetic | `[MentalArithmetic].py` |
+| Mumtaz2016 | `[Mumtaz2016].py` |
+| PhysioNet-MI | `[PhysioNet-MI].py` |
+| SEED-V | `[SEEDV].py` |
+| Siena | `[Siena].py` |
+| TUAB | `[TUAB].py` |
+| TUAR | `[TUAR].py` |
+
+### TUEG Preprocessing
+
+TUEG preprocessing consists of two stages. The first stage standardizes the raw EDF recordings, and the second stage creates 30-second NumPy samples.
+
+```bash
+cd "$REPO_ROOT/Code_Preprocess"
+
+python "[TUEG]-1-Preprocess.py" \
+  --input_dir "$DATA_ROOT/TUEG/TUEG_RawData" \
+  --output_root "$DATA_ROOT/TUEG/TUEG_250Hz/Preprocess" \
+  --target_freq 250 \
+  --line_freq 60 \
+  --l_freq 0.1 \
+  --h_freq 50
+```
+
+Before running the second stage, set `INPUT_ROOT` and `OUTPUT_ROOT` near the top of `[TUEG]-2-Segment.py` to the preprocessed EDF directory and the desired segment directory:
+
+```bash
+python "[TUEG]-2-Segment.py"
+```
+
+`Data_Reference/TUEG` provides a small example of the expected input and output layout:
 
 ```text
 Data_Reference/
@@ -58,236 +90,313 @@ Data_Reference/
                     └── segment_28.npy
 ```
 
-`[TUEG]-1-Preprocess.py` reads the nested raw EDF recording and writes the standardized 250 Hz EDF under `TUEG_250Hz/Preprocess`. `[TUEG]-2-Segment.py` then converts that preprocessed recording into individual 30-second NumPy segments under `TUEG_250Hz/Segment`.
+Other datasets follow the same overall workflow: raw recordings are read from a dataset-specific directory, standardized to the target sampling rate, and saved as model-ready samples under a `Segment` or `Segment_*` directory. Their output directories additionally contain the dataset splits and labels required by the corresponding evaluation scripts.
 
-The other supported datasets follow the same general organization: raw recordings are kept in a dataset-specific raw-data directory, preprocessing standardizes the signals (including the target sampling rate), and segmentation produces model-ready samples in a `Segment` or `Segment_*` directory. Exact directory names and segment lengths are dataset-specific; refer to the commands below.
+### Downstream Dataset Preprocessing
 
-## 1. EEG preprocessing
-
-```bash
-cd "$REPO_ROOT/Code_Preprocess"
-```
-
-The following commands reproduce the dataset-specific invocations from `Process_Downstream.job`. Replace the paths under `DATA_ROOT` when your raw data uses a different layout.
-
-### MentalArithmetic
+Run the following commands from `Code_Preprocess`. Adjust the input paths if the downloaded datasets use a different directory layout.
 
 ```bash
+# MentalArithmetic
 python "[MentalArithmetic].py" --raw_unit V \
   --input_dir "$DATA_ROOT/MentalArithmetic/MentalArithmetic_RawData" \
   --output_dir "$DATA_ROOT/MentalArithmetic/MentalArithmetic_250Hz"
-```
 
-### FACED
-
-```bash
+# FACED (30-second segments used by the evaluation commands below)
 python "[FACED].py" --seg_len 30 --raw_unit uV \
   --input_dir "$DATA_ROOT/FACED/FACED_RawData/Processed_data" \
   --output_dir "$DATA_ROOT/FACED/FACED_250Hz/Segment_30s"
 
+# Optional FACED 10-second segments
 python "[FACED].py" --seg_len 10 --raw_unit uV \
   --input_dir "$DATA_ROOT/FACED/FACED_RawData/Processed_data" \
   --output_dir "$DATA_ROOT/FACED/FACED_250Hz/Segment_10s"
-```
 
-### PhysioNet-MI
-
-```bash
+# PhysioNet-MI
 python "[PhysioNet-MI].py" --raw_unit V \
   --input_dir "$DATA_ROOT/PhysioNet-MI/PhysioNet-MI_RawData" \
   --output_dir "$DATA_ROOT/PhysioNet-MI/PhysioNet-MI_250Hz"
-```
 
-### SEED-V
-
-```bash
+# SEED-V
 python "[SEEDV].py" --seg_len 4 --raw_unit V \
+  --montage_file "$DATA_ROOT/SEED/SEED_RawData/SEED-V/channel_62_pos.locs" \
   --input_dir "$DATA_ROOT/SEED/SEED_RawData/SEED-V/EEG_raw" \
   --output_dir "$DATA_ROOT/SEED/SEED_250Hz/SEED-V_4s"
 
+# Optional SEED-V 1-second segments
 python "[SEEDV].py" --seg_len 1 --raw_unit V \
+  --montage_file "$DATA_ROOT/SEED/SEED_RawData/SEED-V/channel_62_pos.locs" \
   --input_dir "$DATA_ROOT/SEED/SEED_RawData/SEED-V/EEG_raw" \
   --output_dir "$DATA_ROOT/SEED/SEED_250Hz/SEED-V_1s"
-```
 
-### Mumtaz2016
-
-```bash
+# Mumtaz2016
 python "[Mumtaz2016].py" --l_freq 0.3 --h_freq 75 --notch_freq 50 --raw_unit V \
   --input_dir "$DATA_ROOT/Mumtaz2016/Mumtaz2016_RawData" \
   --output_dir "$DATA_ROOT/Mumtaz2016/Mumtaz2016_250Hz_03-75filter"
-```
 
-### ISRUC-S1
-
-```bash
+# ISRUC-S1
 python "[ISRUC].py" --l_freq 0.3 --h_freq 35 --notch_freq 50 --raw_unit V \
   --input_dir "$DATA_ROOT/ISRUC-SLEEP/ISRUC_RawData/ISRUC_S1" \
   --output_dir "$DATA_ROOT/ISRUC-SLEEP/ISRUC_S1_250Hz"
-```
 
-### TUAB
-
-```bash
+# TUAB
 python "[TUAB].py" --skip_reference --skip_ica \
   --l_freq 0.3 --h_freq 75 --notch_freq 60 --raw_unit V \
   --input_dir "$DATA_ROOT/TUAB/TUAB_RawData" \
   --output_dir "$DATA_ROOT/TUAB/TUAB_250Hz"
-```
 
-### ADFTD
-
-```bash
+# ADFTD (10-second segments used by the evaluation commands below)
 python "[ADFTD].py" --seg_len 10 --raw_unit V \
   --input_dir "$DATA_ROOT/ADFTD/ADFTD_RawData" \
   --output_dir "$DATA_ROOT/ADFTD/ADFTD_250Hz"
 
+# Optional ADFTD 4-second segments
 python "[ADFTD].py" --seg_len 4 --raw_unit V \
   --input_dir "$DATA_ROOT/ADFTD/ADFTD_RawData" \
   --output_dir "$DATA_ROOT/ADFTD/ADFTD_250Hz"
 
+# Optional ADFTD 30-second segments
 python "[ADFTD].py" --seg_len 30 --raw_unit V \
   --input_dir "$DATA_ROOT/ADFTD/ADFTD_RawData" \
   --output_dir "$DATA_ROOT/ADFTD/ADFTD_250Hz"
-```
 
-### Siena
-
-```bash
+# Siena
 python "[Siena].py" --l_freq 0.1 --h_freq 75 --notch_freq 50 --raw_unit V \
   --input_dir "$DATA_ROOT/Siena/Siena_RawData" \
   --output_dir "$DATA_ROOT/Siena/Siena_250Hz"
-```
 
-### TUAR
-
-```bash
+# TUAR
 python "[TUAR].py" --seed 0 --skip_reference --skip_ica \
   --l_freq 0.3 --h_freq 75 --notch_freq 60 --raw_unit V \
   --input_dir /path/to/TUAR/edf \
   --output_dir "$DATA_ROOT/TUAR"
 ```
 
-### TUEG
+## 2. Self-Supervised Pretraining
 
-TUEG preprocessing has two stages. Stage 1 accepts paths on the command line:
-
-```bash
-python "[TUEG]-1-Preprocess.py" \
-  --input_dir "$DATA_ROOT/TUEG/TUEG_RawData" \
-  --output_root "$DATA_ROOT/TUEG/TUEG_250Hz/Preprocess" \
-  --target_freq 250 --line_freq 60 --l_freq 0.1 --h_freq 50
-```
-
-Optional Stage 1 arguments include `--select_folders`, `--ica_n`, `--skip_ica`, `--montage`, and `--timeout`.
-
-Stage 2 currently defines `INPUT_ROOT` and `OUTPUT_ROOT` near the top of `[TUEG]-2-Segment.py`. Set them to the Stage 1 output and desired segment directory, respectively, then run:
-
-```bash
-python "[TUEG]-2-Segment.py"
-```
-
-## 2. Self-supervised pretraining (200 epochs)
-
-Before training, edit `Code_Training/configs/train/vitb_eeg_200epoch.yaml` and set `dataset.data_root` to the preprocessed TUEG segment directory.
-
-Run from `Code_Training`:
-
-```bash
-cd "$REPO_ROOT/Code_Training"
-env -u SLURM_JOB_ID torchrun --nproc_per_node=2 --master_port=29520 train/train.py --output_dir experiments/train_200epoch --config-file configs/train/vitb_eeg_200epoch.yaml
-```
-
-This is the two-GPU command from `train_4gpu.job`. Change `--master_port` if that port is already in use.
-
-### One-GPU local batch-size test
-
-The 200-epoch YAML points to the local `Data_Reference` sample. From `Code_Training`, run the following command to test the pipeline on one GPU with batch size 2:
-
-```bash
-torchrun --nproc_per_node=1  train/train.py --output_dir experiments/test --config-file configs/train/vitb_eeg_200epoch.yaml train.batch_size_per_gpu=2
-```
-
-Here, `train.batch_size_per_gpu=2` is a temporary command-line override used only for this small `Data_Reference` test. For real training, remove this override from the command and edit `train.batch_size_per_gpu` directly in `configs/train/vitb_eeg_200epoch.yaml` to the batch size supported by the available GPU memory.
-
-## 3. Downstream evaluation
-
-Run the following commands from `Code_Training`. They reproduce every dataset command in `eval_finetune.job` and `eval_linearprobe.job`, with an explicit `--eval_dir` so the scripts can locate `config.yaml` and `teacher_checkpoint.pth`.
+Run all pre-training commands from `Code_Training`:
 
 ```bash
 cd "$REPO_ROOT/Code_Training"
 ```
 
-### Fine-tuning
+### Single-GPU Test
 
-```bash
-# MentalArithmetic
-python "evaluations/[MentalArithmetic]-finetune.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_fp16 --epochs 20 --data "$DATA_ROOT/MentalArithmetic/MentalArithmetic_250Hz/Segment"
+For a quick pipeline test, set `dataset.data_root` in `configs/train/vitb_eeg_200epoch.yaml` to:
 
-# FACED
-python "evaluations/[FACED]-finetune.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --data "$DATA_ROOT/FACED/FACED_250Hz/Segment_30s"
-
-# PhysioNet-MI
-python "evaluations/[PhysioNet-MI]-finetune.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --data "$DATA_ROOT/PhysioNet-MI/PhysioNet-MI_250Hz/Segment"
-
-# SEED-V
-python "evaluations/[SEEDV]-finetune.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --data "$DATA_ROOT/SEED/SEED_250Hz/SEED-V_4s/Segment"
-
-# Mumtaz2016
-python "evaluations/[Mumtaz2016]-finetune.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --data "$DATA_ROOT/Mumtaz2016/Mumtaz2016_250Hz_03-75filter/Segment"
-
-# ISRUC-S1
-python "evaluations/[ISRUC-S1]-finetune.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --epochs 30 --batchsize 60 --data "$DATA_ROOT/ISRUC-SLEEP/ISRUC_S1_250Hz/Segment"
-
-# TUAB
-python "evaluations/[TUAB]-finetune.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_fp16 --epochs 10 --data "$DATA_ROOT/TUAB/TUAB_250Hz/Segment"
-
-# ADFTD
-python "evaluations/[ADFTD]-finetune.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --data "$DATA_ROOT/ADFTD/ADFTD_250Hz/Segment_10s"
-
-# Siena
-python "evaluations/[Siena]-finetune.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --data "$DATA_ROOT/Siena/Siena_250Hz/Segment"
-
-# TUAR
-python "evaluations/[TUAR]-finetune.py" --eval_dir "$EVAL_DIR" --use_patch pooling --use_lrscheduler --use_fp16 --epochs 20 --data "$DATA_ROOT/TUAR/TUAR_250Hz/Segment"
+```yaml
+dataset:
+  data_root: ../Data_Reference/TUEG/TUEG_250Hz/Segment
 ```
 
-### Linear probing
+Then run the model on one GPU with a temporary per-GPU batch size of 2:
 
 ```bash
-# MentalArithmetic
-python "evaluations/[MentalArithmetic]-linearprobe.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_fp16 --data "$DATA_ROOT/MentalArithmetic/MentalArithmetic_250Hz/Segment"
-
-# FACED
-python "evaluations/[FACED]-linearprobe.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --data "$DATA_ROOT/FACED/FACED_250Hz/Segment_30s"
-
-# PhysioNet-MI
-python "evaluations/[PhysioNet-MI]-linearprobe.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --data "$DATA_ROOT/PhysioNet-MI/PhysioNet-MI_250Hz/Segment"
-
-# SEED-V
-python "evaluations/[SEEDV]-linearprobe.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --data "$DATA_ROOT/SEED/SEED_250Hz/SEED-V_4s/Segment"
-
-# Mumtaz2016
-python "evaluations/[Mumtaz2016]-linearprobe.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --data "$DATA_ROOT/Mumtaz2016/Mumtaz2016_250Hz_03-75filter/Segment"
-
-# ISRUC-S1
-python "evaluations/[ISRUC-S1]-linearprobe.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --data "$DATA_ROOT/ISRUC-SLEEP/ISRUC_S1_250Hz/Segment"
-
-# TUAB
-python "evaluations/[TUAB]-linearprobe.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --epochs 10 --data "$DATA_ROOT/TUAB/TUAB_250Hz/Segment"
-
-# ADFTD
-python "evaluations/[ADFTD]-linearprobe.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --data "$DATA_ROOT/ADFTD/ADFTD_250Hz/Segment_10s"
-
-# Siena
-python "evaluations/[Siena]-linearprobe.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --data "$DATA_ROOT/Siena/Siena_250Hz/Segment"
-
-# TUAR
-python "evaluations/[TUAR]-linearprobe.py" --eval_dir "$EVAL_DIR" --use_patch flatten --use_lrscheduler --use_fp16 --data "$DATA_ROOT/TUAR/TUAR_250Hz/Segment"
+torchrun --nproc_per_node=1 train/train.py \
+  --output_dir experiments/test \
+  --config-file configs/train/vitb_eeg.yaml \
+  train.batch_size_per_gpu=2
 ```
 
-## Notes
+The `train.batch_size_per_gpu=2` override is intended only for this small `Data_Reference` test.
 
-- Dataset licenses and access conditions are not included; obtain each dataset from its official source.
-- `experiments` is intentionally empty and is used for generated training output.
-- Evaluation checkpoints are not included. Supply them through `--eval_dir` as described above.
+### Full Pretraining
+
+For full pre-training, set `dataset.data_root` in the YAML file to the complete TUEG segment directory and remove the test-time batch-size override. With the provided YAML parameters, training requires **2 to 4 NVIDIA A100 80 GB GPUs**.
+
+The following example uses four GPUs:
+
+```bash
+env -u SLURM_JOB_ID torchrun \
+  --nproc_per_node=4 \
+  --master_port=29520 \
+  train/train.py \
+  --output_dir experiments/pretrain \
+  --config-file configs/train/vitb_eeg.yaml
+```
+
+Set `--nproc_per_node=2` when using two GPUs. Change `--master_port` if port `29520` is already occupied.
+
+## 3. Downstream Evaluation
+
+### Download the Pretrained Checkpoint
+
+Download `config.yaml` and `teacher_checkpoint.pth` from the [INCEPT checkpoint folder](https://drive.google.com/drive/u/0/folders/1YKJ43MgHDlu2LqGfqi1DMmdN9jytE-ot), then place them as follows:
+
+```text
+Code_Training/
+└── evaluations/
+    ├── checkpoints/
+    │   ├── config.yaml
+    │   └── teacher_checkpoint.pth
+    └── downstream/
+```
+
+The evaluation scripts read the pre-trained model from `evaluations/checkpoints` and save downstream checkpoints to `evaluations/downstream/<dataset>`. Both are the default paths; `--eval_dir` and `--output_dir` can be used to override them.
+
+Run the commands below from `Code_Training`:
+
+```bash
+cd "$REPO_ROOT/Code_Training"
+```
+
+### MentalArithmetic
+
+```bash
+# Fine-tuning
+python "evaluations/[MentalArithmetic]-finetune.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_fp16 --epochs 20 \
+  --data "$DATA_ROOT/MentalArithmetic/MentalArithmetic_250Hz/Segment"
+
+# Linear probing
+python "evaluations/[MentalArithmetic]-linearprobe.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_fp16 \
+  --data "$DATA_ROOT/MentalArithmetic/MentalArithmetic_250Hz/Segment"
+```
+
+### FACED
+
+```bash
+# Fine-tuning
+python "evaluations/[FACED]-finetune.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 \
+  --data "$DATA_ROOT/FACED/FACED_250Hz/Segment_30s"
+
+# Linear probing
+python "evaluations/[FACED]-linearprobe.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 \
+  --data "$DATA_ROOT/FACED/FACED_250Hz/Segment_30s"
+```
+
+### PhysioNet-MI
+
+```bash
+# Fine-tuning
+python "evaluations/[PhysioNet-MI]-finetune.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 \
+  --data "$DATA_ROOT/PhysioNet-MI/PhysioNet-MI_250Hz/Segment"
+
+# Linear probing
+python "evaluations/[PhysioNet-MI]-linearprobe.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 \
+  --data "$DATA_ROOT/PhysioNet-MI/PhysioNet-MI_250Hz/Segment"
+```
+
+### SEED-V
+
+```bash
+# Fine-tuning
+python "evaluations/[SEEDV]-finetune.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 \
+  --data "$DATA_ROOT/SEED/SEED_250Hz/SEED-V_4s/Segment"
+
+# Linear probing
+python "evaluations/[SEEDV]-linearprobe.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 \
+  --data "$DATA_ROOT/SEED/SEED_250Hz/SEED-V_4s/Segment"
+```
+
+### Mumtaz2016
+
+```bash
+# Fine-tuning
+python "evaluations/[Mumtaz2016]-finetune.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 \
+  --data "$DATA_ROOT/Mumtaz2016/Mumtaz2016_250Hz_03-75filter/Segment"
+
+# Linear probing
+python "evaluations/[Mumtaz2016]-linearprobe.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 \
+  --data "$DATA_ROOT/Mumtaz2016/Mumtaz2016_250Hz_03-75filter/Segment"
+```
+
+### ISRUC-S1
+
+```bash
+# Fine-tuning
+python "evaluations/[ISRUC-S1]-finetune.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 \
+  --epochs 30 --batchsize 60 \
+  --data "$DATA_ROOT/ISRUC-SLEEP/ISRUC_S1_250Hz/Segment"
+
+# Linear probing
+python "evaluations/[ISRUC-S1]-linearprobe.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 \
+  --data "$DATA_ROOT/ISRUC-SLEEP/ISRUC_S1_250Hz/Segment"
+```
+
+### TUAB
+
+```bash
+# Fine-tuning
+python "evaluations/[TUAB]-finetune.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_fp16 --epochs 10 \
+  --data "$DATA_ROOT/TUAB/TUAB_250Hz/Segment"
+
+# Linear probing
+python "evaluations/[TUAB]-linearprobe.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 --epochs 10 \
+  --data "$DATA_ROOT/TUAB/TUAB_250Hz/Segment"
+```
+
+### ADFTD
+
+```bash
+# Fine-tuning
+python "evaluations/[ADFTD]-finetune.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 \
+  --data "$DATA_ROOT/ADFTD/ADFTD_250Hz/Segment_10s"
+
+# Linear probing
+python "evaluations/[ADFTD]-linearprobe.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 \
+  --data "$DATA_ROOT/ADFTD/ADFTD_250Hz/Segment_10s"
+```
+
+### Siena
+
+```bash
+# Fine-tuning
+python "evaluations/[Siena]-finetune.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 \
+  --data "$DATA_ROOT/Siena/Siena_250Hz/Segment"
+
+# Linear probing
+python "evaluations/[Siena]-linearprobe.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 \
+  --data "$DATA_ROOT/Siena/Siena_250Hz/Segment"
+```
+
+### TUAR
+
+```bash
+# Fine-tuning
+python "evaluations/[TUAR]-finetune.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch pooling --use_lrscheduler --use_fp16 --epochs 20 \
+  --data "$DATA_ROOT/TUAR/TUAR_250Hz/Segment"
+
+# Linear probing
+python "evaluations/[TUAR]-linearprobe.py" \
+  --eval_dir evaluations/checkpoints --output_dir evaluations/downstream \
+  --use_patch flatten --use_lrscheduler --use_fp16 \
+  --data "$DATA_ROOT/TUAR/TUAR_250Hz/Segment"
+```

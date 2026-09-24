@@ -17,7 +17,7 @@ train:
   num_workers: 5
   centering: sinkhorn_knopp
 dataset:
-  data_root: /media/douyl/Disk4T/douyl/IDEA_Lab/Project_BCI/INCEPT/Data_Reference/TUEG/TUEG_250Hz/Segment
+  data_root: ../Data_Reference/TUEG/TUEG_250Hz/Segment
   num_channels: 19
   num_patches_per_channel: 30
   patch_time_dim: 250  # sampling rate 250Hz -> 1s patches

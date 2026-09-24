@@ -1,0 +1,13 @@
+numpy==1.26.4
+scipy==1.13.1
+scikit-learn==1.6.1
+PyYAML==6.0.3
+omegaconf==2.3.0
+fvcore==0.1.5.post20221221
+iopath==0.1.10
+xformers==0.0.18
+mne==1.8.0
+mne-icalabel==0.7.0
+edfio==0.4.11
+pebble==5.1.3
+tqdm==4.67.1

@@ -1,0 +1,119 @@
+I20260924 21:43:23 1108694 incept config.py:60] config_file: configs/train/vitb_eeg_200epoch.yaml
+eval: 
+eval_only: False
+no_resume: False
+opts: ['train.batch_size_per_gpu=2', 'train.output_dir=/media/douyl/Disk4T/douyl/IDEA_Lab/Project_BCI/Github/INCEPT/Code_Training/experiments/test']
+output_dir: /media/douyl/Disk4T/douyl/IDEA_Lab/Project_BCI/Github/INCEPT/Code_Training/experiments/test
+I20260924 21:43:23 1108694 incept config.py:26] sqrt scaling learning rate; base: 0.0008, new: 3.535533905932738e-05, due to batchsize: 2 and GPUs: 1
+I20260924 21:43:23 1108694 incept patch_embed.py:34] using Time-frequency Residual Fusion Patch Embedding (Init=0, Max=0.2)
+I20260924 21:43:23 1108694 incept vision_transformer.py:209] using Spherical Harmonics Channel Embedding with degree 4
+I20260924 21:43:23 1108694 incept vision_transformer.py:217] using Learnable Sinusoidal Positional Embedding (Channel-wise gating) with temperature 10000.0
+I20260924 21:43:23 1108694 incept vision_transformer.py:234] Building transformer blocks - Total layers: 12, Layer types: [layer0:channel-wise, layer1:global, layer2:channel-wise, layer3:global, layer4:channel-wise, layer5:global, layer6:channel-wise, layer7:global, layer8:channel-wise, layer9:global, layer10:channel-wise, layer11:global]
+I20260924 21:43:24 1108694 incept patch_embed.py:34] using Time-frequency Residual Fusion Patch Embedding (Init=0, Max=0.2)
+I20260924 21:43:24 1108694 incept vision_transformer.py:209] using Spherical Harmonics Channel Embedding with degree 4
+I20260924 21:43:24 1108694 incept vision_transformer.py:217] using Learnable Sinusoidal Positional Embedding (Channel-wise gating) with temperature 10000.0
+I20260924 21:43:24 1108694 incept vision_transformer.py:234] Building transformer blocks - Total layers: 12, Layer types: [layer0:channel-wise, layer1:global, layer2:channel-wise, layer3:global, layer4:channel-wise, layer5:global, layer6:channel-wise, layer7:global, layer8:channel-wise, layer9:global, layer10:channel-wise, layer11:global]
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:46] OPTIONS -- architecture : embed_dim: 768
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:61] OPTIONS -- DINO
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:63] OPTIONS -- DINO -- loss_weight: 1.0
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:64] OPTIONS -- DINO -- head_n_prototypes: 8192
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:65] OPTIONS -- DINO -- head_bottleneck_dim: 256
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:66] OPTIONS -- DINO -- head_hidden_dim: 2048
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:78] OPTIONS -- DINO -- applying KOLEO regularization
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:88] OPTIONS -- IBOT
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:89] OPTIONS -- IBOT -- loss_weight: 1.0
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:90] OPTIONS -- IBOT masking -- ibot_mask_ratio_tuple: [0.1, 0.3]
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:91] OPTIONS -- IBOT masking -- ibot_mask_sample_probability: 0.5
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:114] OPTIONS -- IBOT -- head shared with DINO
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:124] Student and Teacher are built: they are both vit_base network.
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:427] DISTRIBUTED FSDP -- preparing model for distributed training
+W20260924 21:43:25 1108694 py.warnings warnings.py:109] /home/douyl/miniconda3/envs/dinov2/lib/python3.9/site-packages/torch/distributed/fsdp/_init_utils.py:295: UserWarning: FSDP is switching to use `NO_SHARD` instead of ShardingStrategy.SHARD_GRAD_OP since the world size is 1.
+  warnings.warn(
+
+I20260924 21:43:25 1108694 incept param_groups.py:54] chunked fsdp
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:414] fusing param groups
+I20260924 21:43:25 1108694 incept param_groups.py:64] else code branch
+I20260924 21:43:25 1108694 incept ssl_meta_arch.py:414] fusing param groups
+I20260924 21:43:25 1108694 incept train.py:112] Schedulers ready.
+I20260924 21:43:25 1108694 fvcore.common.checkpoint checkpoint.py:148] No checkpoint found. Initializing model from scratch
+I20260924 21:43:25 1108694 incept augmentations.py:58]   
+EEG Data Augmentation (Dynamic Batch Shapes)
+  [Global Range] C: [17, 19], N: [24, 30]
+  [Local Range]  C: [12, 15], N: [6, 12]
+  [Aug] Method: FFT-based Multi-band PCA + Channel Dropout
+  [PCA] PCA Var Range: [0.9, 0.95], Noise Weight: [0.7, 1.3]
+  [Dropout] Prob: 0.05, Max Ch: 1
+I20260924 21:43:25 1108694 incept loaders.py:29] Making EEG dataset from: "/media/douyl/Disk4T/douyl/IDEA_Lab/Project_BCI/INCEPT/Data_Reference/TUEG/TUEG_250Hz/Segment"
+I20260924 21:43:26 1108694 incept loaders.py:36] # of dataset samples: 0
+I20260924 21:43:26 1108694 incept loaders.py:63] sampler: sharded infinite
+I20260924 21:43:26 1108694 incept loaders.py:132] using PyTorch data loader
+I20260924 21:43:26 1108694 incept loaders.py:147] infinite data loader
+I20260924 21:43:26 1108694 incept train.py:229] Starting training from iteration 0
+I20260924 21:47:14 1109843 incept config.py:60] config_file: configs/train/vitb_eeg.yaml
+eval: 
+eval_only: False
+no_resume: False
+opts: ['train.batch_size_per_gpu=2', 'train.output_dir=/media/douyl/Disk4T/douyl/IDEA_Lab/Project_BCI/Github/INCEPT/Code_Training/experiments/test']
+output_dir: /media/douyl/Disk4T/douyl/IDEA_Lab/Project_BCI/Github/INCEPT/Code_Training/experiments/test
+I20260924 21:47:14 1109843 incept config.py:26] sqrt scaling learning rate; base: 0.0008, new: 3.535533905932738e-05, due to batchsize: 2 and GPUs: 1
+I20260924 21:47:15 1109843 incept patch_embed.py:34] using Time-frequency Residual Fusion Patch Embedding (Init=0, Max=0.2)
+I20260924 21:47:15 1109843 incept vision_transformer.py:209] using Spherical Harmonics Channel Embedding with degree 4
+I20260924 21:47:15 1109843 incept vision_transformer.py:217] using Learnable Sinusoidal Positional Embedding (Channel-wise gating) with temperature 10000.0
+I20260924 21:47:15 1109843 incept vision_transformer.py:234] Building transformer blocks - Total layers: 12, Layer types: [layer0:channel-wise, layer1:global, layer2:channel-wise, layer3:global, layer4:channel-wise, layer5:global, layer6:channel-wise, layer7:global, layer8:channel-wise, layer9:global, layer10:channel-wise, layer11:global]
+I20260924 21:47:15 1109843 incept patch_embed.py:34] using Time-frequency Residual Fusion Patch Embedding (Init=0, Max=0.2)
+I20260924 21:47:15 1109843 incept vision_transformer.py:209] using Spherical Harmonics Channel Embedding with degree 4
+I20260924 21:47:15 1109843 incept vision_transformer.py:217] using Learnable Sinusoidal Positional Embedding (Channel-wise gating) with temperature 10000.0
+I20260924 21:47:15 1109843 incept vision_transformer.py:234] Building transformer blocks - Total layers: 12, Layer types: [layer0:channel-wise, layer1:global, layer2:channel-wise, layer3:global, layer4:channel-wise, layer5:global, layer6:channel-wise, layer7:global, layer8:channel-wise, layer9:global, layer10:channel-wise, layer11:global]
+I20260924 21:47:16 1109843 incept ssl_meta_arch.py:46] OPTIONS -- architecture : embed_dim: 768
+I20260924 21:47:16 1109843 incept ssl_meta_arch.py:61] OPTIONS -- DINO
+I20260924 21:47:16 1109843 incept ssl_meta_arch.py:63] OPTIONS -- DINO -- loss_weight: 1.0
+I20260924 21:47:16 1109843 incept ssl_meta_arch.py:64] OPTIONS -- DINO -- head_n_prototypes: 8192
+I20260924 21:47:16 1109843 incept ssl_meta_arch.py:65] OPTIONS -- DINO -- head_bottleneck_dim: 256
+I20260924 21:47:16 1109843 incept ssl_meta_arch.py:66] OPTIONS -- DINO -- head_hidden_dim: 2048
+I20260924 21:47:16 1109843 incept ssl_meta_arch.py:78] OPTIONS -- DINO -- applying KOLEO regularization
+I20260924 21:47:16 1109843 incept ssl_meta_arch.py:88] OPTIONS -- IBOT
+I20260924 21:47:16 1109843 incept ssl_meta_arch.py:89] OPTIONS -- IBOT -- loss_weight: 1.0
+I20260924 21:47:16 1109843 incept ssl_meta_arch.py:90] OPTIONS -- IBOT masking -- ibot_mask_ratio_tuple: [0.1, 0.3]
+I20260924 21:47:16 1109843 incept ssl_meta_arch.py:91] OPTIONS -- IBOT masking -- ibot_mask_sample_probability: 0.5
+I20260924 21:47:16 1109843 incept ssl_meta_arch.py:114] OPTIONS -- IBOT -- head shared with DINO
+I20260924 21:47:16 1109843 incept ssl_meta_arch.py:124] Student and Teacher are built: they are both vit_base network.
+I20260924 21:47:16 1109843 incept ssl_meta_arch.py:427] DISTRIBUTED FSDP -- preparing model for distributed training
+W20260924 21:47:16 1109843 py.warnings warnings.py:109] /home/douyl/miniconda3/envs/dinov2/lib/python3.9/site-packages/torch/distributed/fsdp/_init_utils.py:295: UserWarning: FSDP is switching to use `NO_SHARD` instead of ShardingStrategy.SHARD_GRAD_OP since the world size is 1.
+  warnings.warn(
+
+I20260924 21:47:16 1109843 incept param_groups.py:54] chunked fsdp
+I20260924 21:47:16 1109843 incept ssl_meta_arch.py:414] fusing param groups
+I20260924 21:47:16 1109843 incept param_groups.py:64] else code branch
+I20260924 21:47:17 1109843 incept ssl_meta_arch.py:414] fusing param groups
+I20260924 21:47:17 1109843 incept train.py:112] Schedulers ready.
+I20260924 21:47:17 1109843 fvcore.common.checkpoint checkpoint.py:148] No checkpoint found. Initializing model from scratch
+I20260924 21:47:17 1109843 incept augmentations.py:58]   
+EEG Data Augmentation (Dynamic Batch Shapes)
+  [Global Range] C: [17, 19], N: [24, 30]
+  [Local Range]  C: [12, 15], N: [6, 12]
+  [Aug] Method: FFT-based Multi-band PCA + Channel Dropout
+  [PCA] PCA Var Range: [0.9, 0.95], Noise Weight: [0.7, 1.3]
+  [Dropout] Prob: 0.05, Max Ch: 1
+I20260924 21:47:17 1109843 incept loaders.py:29] Making EEG dataset from: "../Data_Reference/TUEG/TUEG_250Hz/Segment"
+I20260924 21:47:17 1109843 incept loaders.py:36] # of dataset samples: 29
+I20260924 21:47:17 1109843 incept loaders.py:63] sampler: sharded infinite
+I20260924 21:47:17 1109843 incept loaders.py:132] using PyTorch data loader
+I20260924 21:47:17 1109843 incept loaders.py:147] infinite data loader
+I20260924 21:47:17 1109843 incept train.py:229] Starting training from iteration 0
+W20260924 21:47:18 1109843 py.warnings warnings.py:109] /home/douyl/miniconda3/envs/dinov2/lib/python3.9/site-packages/xformers/ops/fmha/flash.py:338: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  and inp.query.storage().data_ptr() == inp.key.storage().data_ptr()
+
+W20260924 21:47:18 1109843 py.warnings warnings.py:109] /home/douyl/miniconda3/envs/dinov2/lib/python3.9/site-packages/xformers/ops/fmha/flash.py:339: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  and inp.query.storage().data_ptr() == inp.value.storage().data_ptr()
+
+W20260924 21:47:18 1109843 py.warnings warnings.py:109] /home/douyl/miniconda3/envs/dinov2/lib/python3.9/site-packages/xformers/ops/unbind.py:46: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  storage_data_ptr = tensors[0].storage().data_ptr()
+
+W20260924 21:47:18 1109843 py.warnings warnings.py:109] /home/douyl/miniconda3/envs/dinov2/lib/python3.9/site-packages/xformers/ops/unbind.py:48: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  if x.storage().data_ptr() != storage_data_ptr:
+
+I20260924 21:47:19 1109843 incept helpers.py:102] Training  [     0/250000]  eta: 3 days, 6:02:33  lr: 0.0000 (0.0000)  wd: 0.0400 (0.0400)  mom: 0.9940 (0.9940)  last_layer_lr: 0.0000 (0.0000)  current_batch_size: 2.0000 (2.0000)  total_loss: 11.5495 (11.5495)  dino_local_crops_loss: 8.1837 (8.1837)  dino_global_crops_loss: 1.0223 (1.0223)  koleo_loss: 0.1151 (0.1151)  ibot_loss: 2.2284 (2.2284)  time: 1.123815  data: 0.596664  max mem: 2013
+I20260924 21:47:20 1109843 incept helpers.py:102] Training  [    10/250000]  eta: 14:39:09  lr: 0.0000 (0.0000)  wd: 0.0400 (0.0400)  mom: 0.9940 (0.9940)  last_layer_lr: 0.0000 (0.0000)  current_batch_size: 2.0000 (2.0000)  total_loss: 11.5495 (11.7398)  dino_local_crops_loss: 8.1850 (8.1844)  dino_global_crops_loss: 1.0232 (1.0241)  koleo_loss: 0.1151 (0.2970)  ibot_loss: 2.2325 (2.2343)  time: 0.211005  data: 0.054362  max mem: 2767
+I20260924 21:47:22 1109843 incept helpers.py:102] Training  [    20/250000]  eta: 11:57:01  lr: 0.0000 (0.0000)  wd: 0.0400 (0.0400)  mom: 0.9940 (0.9940)  last_layer_lr: 0.0000 (0.0000)  current_batch_size: 2.0000 (2.0000)  total_loss: 11.5600 (11.7524)  dino_local_crops_loss: 8.1850 (8.1851)  dino_global_crops_loss: 1.0232 (1.0240)  koleo_loss: 0.1176 (0.3090)  ibot_loss: 2.2325 (2.2343)  time: 0.124514  data: 0.000161  max mem: 2767
+I20260924 21:47:23 1109843 incept helpers.py:102] Training  [    30/250000]  eta: 11:03:18  lr: 0.0000 (0.0000)  wd: 0.0400 (0.0400)  mom: 0.9940 (0.9940)  last_layer_lr: 0.0000 (0.0000)  current_batch_size: 2.0000 (2.0000)  total_loss: 11.5614 (11.7558)  dino_local_crops_loss: 8.1849 (8.1850)  dino_global_crops_loss: 1.0232 (1.0241)  koleo_loss: 0.1190 (0.3130)  ibot_loss: 2.2328 (2.2337)  time: 0.130728  data: 0.000159  max mem: 2805
+I20260924 21:47:25 1109843 incept helpers.py:102] Training  [    40/250000]  eta: 10:35:48  lr: 0.0000 (0.0000)  wd: 0.0400 (0.0400)  mom: 0.9940 (0.9940)  last_layer_lr: 0.0000 (0.0000)  current_batch_size: 2.0000 (2.0000)  total_loss: 11.5604 (11.7120)  dino_local_crops_loss: 8.1837 (8.1843)  dino_global_crops_loss: 1.0243 (1.0241)  koleo_loss: 0.1190 (0.2694)  ibot_loss: 2.2330 (2.2341)  time: 0.132163  data: 0.000131  max mem: 2805
