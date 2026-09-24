@@ -2,7 +2,7 @@
 
 Yulong Dou, Han Wu, Guo Chen, Fangmao Ju, Zhiming Cui, and Dinggang Shen
 
-This is the official implementation of **INCEPT**, an invariance-oriented EEG foundation model for transferable analysis across signal-level, brain-state, and brain-health tasks. The manuscript is currently under review.
+This is the official implementation of **INCEPT**, an invariance-oriented EEG foundation model for transferable analysis across signal-level, brain-state, and brain-health tasks.
 
 ## Environment Setup
 
@@ -102,15 +102,10 @@ python "[MentalArithmetic].py" --raw_unit V \
   --input_dir "$DATA_ROOT/MentalArithmetic/MentalArithmetic_RawData" \
   --output_dir "$DATA_ROOT/MentalArithmetic/MentalArithmetic_250Hz"
 
-# FACED (30-second segments used by the evaluation commands below)
+# FACED
 python "[FACED].py" --seg_len 30 --raw_unit uV \
   --input_dir "$DATA_ROOT/FACED/FACED_RawData/Processed_data" \
   --output_dir "$DATA_ROOT/FACED/FACED_250Hz/Segment_30s"
-
-# Optional FACED 10-second segments
-python "[FACED].py" --seg_len 10 --raw_unit uV \
-  --input_dir "$DATA_ROOT/FACED/FACED_RawData/Processed_data" \
-  --output_dir "$DATA_ROOT/FACED/FACED_250Hz/Segment_10s"
 
 # PhysioNet-MI
 python "[PhysioNet-MI].py" --raw_unit V \
@@ -123,11 +118,6 @@ python "[SEEDV].py" --seg_len 4 --raw_unit V \
   --input_dir "$DATA_ROOT/SEED/SEED_RawData/SEED-V/EEG_raw" \
   --output_dir "$DATA_ROOT/SEED/SEED_250Hz/SEED-V_4s"
 
-# Optional SEED-V 1-second segments
-python "[SEEDV].py" --seg_len 1 --raw_unit V \
-  --montage_file "$DATA_ROOT/SEED/SEED_RawData/SEED-V/channel_62_pos.locs" \
-  --input_dir "$DATA_ROOT/SEED/SEED_RawData/SEED-V/EEG_raw" \
-  --output_dir "$DATA_ROOT/SEED/SEED_250Hz/SEED-V_1s"
 
 # Mumtaz2016
 python "[Mumtaz2016].py" --l_freq 0.3 --h_freq 75 --notch_freq 50 --raw_unit V \
@@ -145,18 +135,8 @@ python "[TUAB].py" --skip_reference --skip_ica \
   --input_dir "$DATA_ROOT/TUAB/TUAB_RawData" \
   --output_dir "$DATA_ROOT/TUAB/TUAB_250Hz"
 
-# ADFTD (10-second segments used by the evaluation commands below)
+# ADFTD
 python "[ADFTD].py" --seg_len 10 --raw_unit V \
-  --input_dir "$DATA_ROOT/ADFTD/ADFTD_RawData" \
-  --output_dir "$DATA_ROOT/ADFTD/ADFTD_250Hz"
-
-# Optional ADFTD 4-second segments
-python "[ADFTD].py" --seg_len 4 --raw_unit V \
-  --input_dir "$DATA_ROOT/ADFTD/ADFTD_RawData" \
-  --output_dir "$DATA_ROOT/ADFTD/ADFTD_250Hz"
-
-# Optional ADFTD 30-second segments
-python "[ADFTD].py" --seg_len 30 --raw_unit V \
   --input_dir "$DATA_ROOT/ADFTD/ADFTD_RawData" \
   --output_dir "$DATA_ROOT/ADFTD/ADFTD_250Hz"
 
