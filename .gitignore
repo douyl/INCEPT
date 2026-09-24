@@ -1,0 +1,2 @@
+# Large PyTorch checkpoint files are kept outside Git/Git LFS.
+*.pth
